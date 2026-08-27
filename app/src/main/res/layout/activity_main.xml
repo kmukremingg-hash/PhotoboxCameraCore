@@ -12,7 +12,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Collectooow! Photobox Camera 0.6"
+            android:text="Collectooow! Photobox Camera 0.7"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -49,14 +49,15 @@
             android:id="@+id/remotePanel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:keepScreenOn="true"
             android:orientation="vertical"
             android:visibility="gone">
 
-            <EditText
+            <com.kevo.photoboxcamera.PersistentHostEditText
                 android:id="@+id/hostAddress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Host-IP, z.B. 192.168.178.25"
+                android:hint="Host-IP"
                 android:inputType="textUri"
                 android:singleLine="true" />
 
@@ -78,7 +79,8 @@
         <TextureView
             android:id="@+id/preview"
             android:layout_width="match_parent"
-            android:layout_height="360dp" />
+            android:layout_height="360dp"
+            android:keepScreenOn="true" />
 
         <Button
             android:id="@+id/scan"
