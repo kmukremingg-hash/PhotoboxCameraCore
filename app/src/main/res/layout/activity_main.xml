@@ -8,16 +8,14 @@
     <TextureView
         android:id="@+id/preview"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="#111111" />
+        android:layout_height="360dp" />
 
     <TextView
         android:id="@+id/status"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="10dp"
-        android:text="Kamera wird geprüft …"
+        android:text="Photobox Camera Diagnose 0.4 – App-Start: OK"
         android:textIsSelectable="true"
         android:textSize="14sp" />
 
@@ -25,5 +23,5 @@
         android:id="@+id/scan"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Kamerafunktionen erneut prüfen" />
+        android:text="Kamera testen" />
 </LinearLayout>
