@@ -11,8 +11,8 @@ android {
         applicationId = "com.kevo.photoboxcamera"
         minSdk = 29
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.2-test"
+        versionCode = 5
+        versionName = "0.5"
     }
 
     compileOptions {
