@@ -1,27 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="12dp">
+    android:layout_height="match_parent">
 
-    <TextureView
-        android:id="@+id/preview"
-        android:layout_width="match_parent"
-        android:layout_height="360dp" />
-
-    <TextView
-        android:id="@+id/status"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="10dp"
-        android:text="Photobox Camera Diagnose 0.4 – App-Start: OK"
-        android:textIsSelectable="true"
-        android:textSize="14sp" />
+        android:orientation="vertical"
+        android:padding="12dp">
 
-    <Button
-        android:id="@+id/scan"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Kamera testen" />
-</LinearLayout>
+        <TextureView
+            android:id="@+id/preview"
+            android:layout_width="match_parent"
+            android:layout_height="360dp" />
+
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:text="Photobox Camera Control 0.5"
+            android:textIsSelectable="true"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/scan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Kamera starten" />
+
+        <Button
+            android:id="@+id/mode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Belichtung: AUTO" />
+
+        <TextView
+            android:id="@+id/isoLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ISO" />
+
+        <SeekBar
+            android:id="@+id/iso"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="1000" />
+
+        <TextView
+            android:id="@+id/exposureLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Belichtungszeit" />
+
+        <SeekBar
+            android:id="@+id/exposure"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="1000" />
+
+        <TextView
+            android:id="@+id/focusLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Fokus: AUTO" />
+
+        <SeekBar
+            android:id="@+id/focus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="1000" />
+
+        <TextView
+            android:id="@+id/zoomLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Zoom: 1.0x" />
+
+        <SeekBar
+            android:id="@+id/zoom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="1000" />
+
+        <Button
+            android:id="@+id/wb"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Weißabgleich: AUTO" />
+
+        <Button
+            android:id="@+id/shutter"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:text="FOTO AUFNEHMEN"
+            android:textSize="20sp" />
+
+    </LinearLayout>
+</ScrollView>
