@@ -3,6 +3,7 @@ package com.kevo.photoboxcamera
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
@@ -12,12 +13,14 @@ import kotlin.math.min
 /**
  * Nicht-generativer Fotobox-Cropper fuer die neue, fest aufgebaute Fotobox.
  *
- * Wichtig fuer 0.9:
+ * 0.9.1:
  * - KEINE 180-Grad-Drehung.
- * - Das Kamerafoto wird bereits richtig herum geliefert.
- * - Die orange Fotobox-Halterung dient nur als geometrische Referenz.
- * - Innerhalb der Verpackung werden keinerlei helle/weiße Pixel entfernt.
- * - Die Aussparung oben rechts wird ausschließlich geometrisch ausgeschnitten.
+ * - JPEG-Sensororientierung wird technisch normalisiert (nur falls die rohen Pixel quer liegen).
+ * - Die orange Fotobox-Halterung dient als geometrische Referenz.
+ * - Falls die Farberkennung wegen Licht/Weissabgleich scheitert, greift die feste
+ *   Fotobox-Kalibrierung aus den beiden weissen Referenzaufnahmen.
+ * - Innerhalb der Verpackung werden keinerlei helle/weisse Pixel entfernt.
+ * - Die Aussparung oben rechts wird ausschliesslich geometrisch ausgeschnitten.
  */
 object FotoboxCropEngine {
 
@@ -30,21 +33,32 @@ object FotoboxCropEngine {
     private data class Rails(
         val left: Int,
         val right: Int,
-        val bottom: Int
+        val bottom: Int,
+        val source: String
     )
 
     fun process(jpeg: ByteArray): Result {
-        val src = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size)
+        val decoded = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size)
             ?: error("JPEG konnte nicht gelesen werden")
 
-        val rails = detectOrangeRails(src)
-            ?: error("Fotobox-Rahmen/Halterung im Bild nicht sicher erkannt")
+        val orientationNormalized = decoded.width > decoded.height
+        val src = if (orientationNormalized) rotateClockwise90(decoded) else decoded
+        if (src !== decoded) decoded.recycle()
+
+        val rails = detectOrangeRails(src) ?: calibratedReferenceRails(src)
+            ?: run {
+                src.recycle()
+                error("Fotobox-Referenz konnte nicht bestimmt werden")
+            }
 
         val cardWidth = rails.right - rails.left + 1
-        if (cardWidth <= 50) error("Erkannte Kartenbreite ist unplausibel")
+        if (cardWidth <= 50) {
+            src.recycle()
+            error("Erkannte Kartenbreite ist unplausibel")
+        }
 
-        // Aus den beiden weißen Referenzaufnahmen kalibriert.
-        // Keine Drehung: die Karte wird in der aufgenommenen Orientierung verarbeitet.
+        // Aus den beiden weissen Referenzaufnahmen kalibriert.
+        // Keine inhaltliche Drehung: die Karte bleibt in der aufgenommenen Orientierung.
         val top = max(0, (rails.bottom - cardWidth * 1.008f).toInt())
         val bottom = min(src.height - 1, rails.bottom)
         val left = max(0, rails.left)
@@ -52,7 +66,10 @@ object FotoboxCropEngine {
         val cw = right - left + 1
         val ch = bottom - top + 1
 
-        if (cw <= 50 || ch <= 50) error("Fotobox-Zuschnitt ist unplausibel")
+        if (cw <= 50 || ch <= 50 || right >= src.width || bottom >= src.height) {
+            src.recycle()
+            error("Fotobox-Zuschnitt ist unplausibel")
+        }
 
         val crop = Bitmap.createBitmap(src, left, top, cw, ch)
         val out = Bitmap.createBitmap(cw, ch, Bitmap.Config.ARGB_8888)
@@ -63,19 +80,23 @@ object FotoboxCropEngine {
         canvas.drawBitmap(crop, 0f, 0f, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG))
         canvas.restore()
 
-        if (crop !== src) crop.recycle()
+        crop.recycle()
         src.recycle()
 
+        val orientationText = if (orientationNormalized) "JPEG-Orientierung normalisiert" else "Orientierung bereits korrekt"
         return Result(
             bitmap = out,
             cropRect = Rect(left, top, right + 1, bottom + 1),
-            message = "Fotobox erkannt · keine Drehung · Außenkontur + Aussparung oben rechts"
+            message = "Fotobox erkannt (${rails.source}) · $orientationText · keine 180°-Drehung · Außenkontur + Aussparung oben rechts"
         )
     }
 
+    private fun rotateClockwise90(bitmap: Bitmap): Bitmap {
+        val matrix = Matrix().apply { postRotate(90f) }
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    }
+
     private fun buildCardPath(w: Float, h: Float): Path = Path().apply {
-        // Geometrische Außenkontur aus den zwei weißen Fotobox-Referenzen.
-        // Es werden nur Bereiche AUSSERHALB der Kartenform transparent.
         moveTo(0f, 0.120f * h)
         lineTo(0.075f * w, 0f)
         lineTo(0.655f * w, 0f)
@@ -100,6 +121,10 @@ object FotoboxCropEngine {
         close()
     }
 
+    /**
+     * Farb-/Geometrieerkennung. Die Suchzonen liegen nur an den bekannten
+     * Fotobox-Raendern, damit orange/rote Verpackungsgrafik in der Karte nicht stoert.
+     */
     private fun detectOrangeRails(bitmap: Bitmap): Rails? {
         val w = bitmap.width
         val h = bitmap.height
@@ -126,18 +151,19 @@ object FotoboxCropEngine {
             y += step
         }
 
-        val minVertical = max(8, (sampledRows * 0.22f).toInt())
-        val minHorizontal = max(8, (sampledCols * 0.32f).toInt())
+        // Etwas toleranter als 0.9, da Weissabgleich und Spiegelungen die Orangeflaeche veraendern koennen.
+        val minVertical = max(6, (sampledRows * 0.12f).toInt())
+        val minHorizontal = max(6, (sampledCols * 0.20f).toInt())
 
         var leftCandidate = -1
         var x = 0
-        while (x < (w * 0.25f).toInt()) {
+        while (x < (w * 0.28f).toInt()) {
             if (colCounts[x] >= minVertical) leftCandidate = x
             x += step
         }
 
         var rightCandidate = -1
-        x = (w * 0.72f).toInt()
+        x = (w * 0.68f).toInt()
         while (x < w) {
             if (colCounts[x] >= minVertical) {
                 rightCandidate = x
@@ -147,7 +173,7 @@ object FotoboxCropEngine {
         }
 
         var bottomCandidate = -1
-        y = (h * 0.55f).toInt()
+        y = (h * 0.50f).toInt()
         while (y < h) {
             if (rowCounts[y] >= minHorizontal) {
                 bottomCandidate = y
@@ -157,40 +183,61 @@ object FotoboxCropEngine {
         }
 
         if (leftCandidate < 0 || rightCandidate < 0 || bottomCandidate < 0) return null
-        if (rightCandidate - leftCandidate < w * 0.40f) return null
+        if (rightCandidate - leftCandidate < w * 0.38f) return null
 
         val leftEdge = refineLeftEdge(bitmap, leftCandidate, step)
         val rightEdge = refineRightEdge(bitmap, rightCandidate, step)
         val bottomEdge = refineTopEdgeOfHorizontalRail(bitmap, bottomCandidate, step)
 
         if (rightEdge <= leftEdge || bottomEdge <= 0) return null
-        return Rails(leftEdge + 1, rightEdge - 1, bottomEdge - 1)
+        return Rails(leftEdge + 1, rightEdge - 1, bottomEdge - 1, "orange Halterung")
+    }
+
+    /**
+     * Fester Referenzmodus fuer die neue Fotobox.
+     * Die Werte stammen aus den zwei weissen, freigegebenen Fotobox-Referenzaufnahmen.
+     * Weil Kamera, Abstand und Halterung praktisch konstant sind, ist dies der sichere
+     * Fallback, wenn Farbe/Beleuchtung die Orange-Erkennung verhindert.
+     */
+    private fun calibratedReferenceRails(bitmap: Bitmap): Rails? {
+        val w = bitmap.width
+        val h = bitmap.height
+        if (w < 300 || h < 300) return null
+
+        val ratio = w.toFloat() / h.toFloat()
+        // Erwartet wird nach technischer Orientierungsnormalisierung ein Hochformat um ca. 3:4.
+        if (ratio !in 0.68f..0.82f) return null
+
+        val left = (w * 0.018f).toInt().coerceIn(0, w - 3)
+        val right = (w * 0.777f).toInt().coerceIn(left + 2, w - 1)
+        val bottom = (h * 0.710f).toInt().coerceIn(2, h - 1)
+        return Rails(left, right, bottom, "Fotobox-Referenz")
     }
 
     private fun refineLeftEdge(bitmap: Bitmap, around: Int, step: Int): Int {
-        val from = max(0, around - step * 4)
-        val to = min(bitmap.width - 1, around + step * 4)
+        val from = max(0, around - step * 6)
+        val to = min(bitmap.width - 1, around + step * 6)
         var best = around
         for (x in from..to) {
-            if (orangeColumnRatio(bitmap, x) > 0.16f) best = x
+            if (orangeColumnRatio(bitmap, x) > 0.10f) best = x
         }
         return best
     }
 
     private fun refineRightEdge(bitmap: Bitmap, around: Int, step: Int): Int {
-        val from = max(0, around - step * 4)
-        val to = min(bitmap.width - 1, around + step * 4)
+        val from = max(0, around - step * 6)
+        val to = min(bitmap.width - 1, around + step * 6)
         for (x in from..to) {
-            if (orangeColumnRatio(bitmap, x) > 0.16f) return x
+            if (orangeColumnRatio(bitmap, x) > 0.10f) return x
         }
         return around
     }
 
     private fun refineTopEdgeOfHorizontalRail(bitmap: Bitmap, around: Int, step: Int): Int {
-        val from = max(0, around - step * 5)
-        val to = min(bitmap.height - 1, around + step * 5)
+        val from = max(0, around - step * 7)
+        val to = min(bitmap.height - 1, around + step * 7)
         for (y in from..to) {
-            if (orangeRowRatio(bitmap, y) > 0.25f) return y
+            if (orangeRowRatio(bitmap, y) > 0.16f) return y
         }
         return around
     }
@@ -225,6 +272,7 @@ object FotoboxCropEngine {
         val r = (pixel shr 16) and 0xff
         val g = (pixel shr 8) and 0xff
         val b = pixel and 0xff
-        return r > 150 && g in 55..190 && b < 135 && (r - g) > 40 && (g - b) > 0
+        // Toleranter Orange-Bereich fuer wechselnde Belichtung/Weissabgleich.
+        return r > 130 && g in 40..205 && b < 160 && (r - g) > 22 && (g - b) > -8
     }
 }
