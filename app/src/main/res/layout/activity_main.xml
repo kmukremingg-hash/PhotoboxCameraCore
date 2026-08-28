@@ -12,7 +12,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Collectooow! Photobox Camera 0.8"
+            android:text="Collectooow! Fotobox 0.9"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -20,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingBottom="8dp"
-            android:text="Handy = Kamera · Tablet = Steuerung + dauerhafter Speicher"
+            android:text="Kamera + Fotocrop in einer App · keine 180°-Drehung"
             android:textSize="13sp" />
 
         <LinearLayout
@@ -29,18 +29,18 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/hostMode"
+                android:id="@+id/navCamera"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="S25 Kamera / Host" />
+                android:text="KAMERA" />
 
             <Button
-                android:id="@+id/remoteMode"
+                android:id="@+id/navCrop"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Tablet / Remote" />
+                android:text="FOTOCROP" />
         </LinearLayout>
 
         <TextView
@@ -54,156 +54,221 @@
             android:textSize="14sp" />
 
         <LinearLayout
-            android:id="@+id/remotePanel"
+            android:id="@+id/cameraPanel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:keepScreenOn="true"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/hostMode"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="S25 Kamera / Host" />
+
+                <Button
+                    android:id="@+id/remoteMode"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Tablet / Remote" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/remotePanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:keepScreenOn="true"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <com.kevo.photoboxcamera.PersistentHostEditText
+                    android:id="@+id/hostAddress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="WLAN-IP vom S25"
+                    android:inputType="textUri"
+                    android:singleLine="true" />
+
+                <Button
+                    android:id="@+id/connectRemote"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Mit S25 verbinden" />
+
+                <ImageView
+                    android:id="@+id/remotePreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="360dp"
+                    android:adjustViewBounds="true"
+                    android:background="#111111"
+                    android:contentDescription="Remote-Livebild. Antippen setzt den Fokuspunkt."
+                    android:scaleType="fitCenter" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="6dp"
+                    android:text="Tipp ins Livebild = Fokuspunkt setzen"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextureView
+                android:id="@+id/preview"
+                android:layout_width="match_parent"
+                android:layout_height="360dp"
+                android:keepScreenOn="true" />
+
+            <Button
+                android:id="@+id/scan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Kamera starten" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/undoSettings"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Rückgängig" />
+
+                <Button
+                    android:id="@+id/redoSettings"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Wiederholen" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/autofocus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="AUTOFOKUS / MITTE FOKUSSIEREN" />
+
+            <Button
+                android:id="@+id/mode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Belichtung: AUTO" />
+
+            <TextView
+                android:id="@+id/isoLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ISO" />
+
+            <SeekBar
+                android:id="@+id/iso"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000" />
+
+            <TextView
+                android:id="@+id/exposureLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Belichtungszeit" />
+
+            <SeekBar
+                android:id="@+id/exposure"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000" />
+
+            <TextView
+                android:id="@+id/focusLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Fokus: AUTO" />
+
+            <SeekBar
+                android:id="@+id/focus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000" />
+
+            <TextView
+                android:id="@+id/zoomLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Zoom: 1.0x" />
+
+            <SeekBar
+                android:id="@+id/zoom"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000" />
+
+            <Button
+                android:id="@+id/wb"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Weißabgleich: AUTO" />
+
+            <Button
+                android:id="@+id/shutter"
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:text="FOTO AUFNEHMEN → TABLET → CROP"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/cropPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:visibility="gone">
 
-            <com.kevo.photoboxcamera.PersistentHostEditText
-                android:id="@+id/hostAddress"
+            <TextView
+                android:id="@+id/cropStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Host-IP vom S25"
-                android:inputType="textUri"
-                android:singleLine="true" />
-
-            <Button
-                android:id="@+id/connectRemote"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Mit S25 verbinden" />
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:text="Noch kein Fotobox-Bild verarbeitet."
+                android:textSize="14sp" />
 
             <ImageView
-                android:id="@+id/remotePreview"
+                android:id="@+id/cropPreview"
                 android:layout_width="match_parent"
-                android:layout_height="360dp"
+                android:layout_height="480dp"
                 android:adjustViewBounds="true"
-                android:background="#111111"
-                android:contentDescription="Remote-Livebild. Antippen setzt den Fokuspunkt."
+                android:background="#222222"
+                android:contentDescription="Vorschau des automatisch zugeschnittenen Fotobox-Bildes"
                 android:scaleType="fitCenter" />
+
+            <Button
+                android:id="@+id/retryCrop"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="LETZTES FOTO ERNEUT CROPPEN" />
+
+            <Button
+                android:id="@+id/backToCamera"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ZURÜCK ZUR KAMERA" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="4dp"
-                android:paddingBottom="6dp"
-                android:text="Tipp ins Livebild = Fokuspunkt setzen"
+                android:paddingTop="8dp"
+                android:text="0.9-Regel: keine 180°-Drehung. Rohbild: Pictures/Collectooow Photobox/Rohbilder. Fertigbild: Pictures/Collectooow Photobox/Fertig. Der Crop ist rein geometrisch und nicht-generativ."
                 android:textSize="12sp" />
         </LinearLayout>
-
-        <TextureView
-            android:id="@+id/preview"
-            android:layout_width="match_parent"
-            android:layout_height="360dp"
-            android:keepScreenOn="true" />
-
-        <Button
-            android:id="@+id/scan"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Kamera starten" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/undoSettings"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Rückgängig" />
-
-            <Button
-                android:id="@+id/redoSettings"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Wiederholen" />
-        </LinearLayout>
-
-        <Button
-            android:id="@+id/autofocus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="AUTOFOKUS / MITTE FOKUSSIEREN" />
-
-        <Button
-            android:id="@+id/mode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Belichtung: AUTO" />
-
-        <TextView
-            android:id="@+id/isoLabel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="ISO" />
-
-        <SeekBar
-            android:id="@+id/iso"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="1000" />
-
-        <TextView
-            android:id="@+id/exposureLabel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Belichtungszeit" />
-
-        <SeekBar
-            android:id="@+id/exposure"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="1000" />
-
-        <TextView
-            android:id="@+id/focusLabel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Fokus: AUTO" />
-
-        <SeekBar
-            android:id="@+id/focus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="1000" />
-
-        <TextView
-            android:id="@+id/zoomLabel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Zoom: 1.0x" />
-
-        <SeekBar
-            android:id="@+id/zoom"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="1000" />
-
-        <Button
-            android:id="@+id/wb"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Weißabgleich: AUTO" />
-
-        <Button
-            android:id="@+id/shutter"
-            android:layout_width="match_parent"
-            android:layout_height="72dp"
-            android:text="FOTO AUFNEHMEN → TABLET"
-            android:textSize="20sp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="8dp"
-            android:text="Speicherregel 0.8: Im Remote-Modus wird das Originalfoto direkt vom S25 zum Tablet übertragen und dort unter Pictures/Collectooow Photobox/Rohbilder gespeichert. Das S25 legt keine dauerhafte Fotodatei an. Einstellungen werden lokal dauerhaft gespeichert."
-            android:textSize="12sp" />
 
     </LinearLayout>
 </ScrollView>
