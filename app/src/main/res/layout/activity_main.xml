@@ -12,9 +12,16 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Collectooow! Photobox Camera 0.7"
+            android:text="Collectooow! Photobox Camera 0.8"
             android:textSize="20sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
+            android:text="Handy = Kamera · Tablet = Steuerung + dauerhafter Speicher"
+            android:textSize="13sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -41,6 +48,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="8dp"
+            android:paddingBottom="8dp"
             android:text="Modus wählen"
             android:textIsSelectable="true"
             android:textSize="14sp" />
@@ -57,7 +65,7 @@
                 android:id="@+id/hostAddress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Host-IP"
+                android:hint="Host-IP vom S25"
                 android:inputType="textUri"
                 android:singleLine="true" />
 
@@ -73,7 +81,16 @@
                 android:layout_height="360dp"
                 android:adjustViewBounds="true"
                 android:background="#111111"
+                android:contentDescription="Remote-Livebild. Antippen setzt den Fokuspunkt."
                 android:scaleType="fitCenter" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="4dp"
+                android:paddingBottom="6dp"
+                android:text="Tipp ins Livebild = Fokuspunkt setzen"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <TextureView
@@ -87,6 +104,32 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Kamera starten" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/undoSettings"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Rückgängig" />
+
+            <Button
+                android:id="@+id/redoSettings"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Wiederholen" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/autofocus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="AUTOFOKUS / MITTE FOKUSSIEREN" />
 
         <Button
             android:id="@+id/mode"
@@ -152,8 +195,15 @@
             android:id="@+id/shutter"
             android:layout_width="match_parent"
             android:layout_height="72dp"
-            android:text="FOTO AUFNEHMEN"
+            android:text="FOTO AUFNEHMEN → TABLET"
             android:textSize="20sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:text="Speicherregel 0.8: Im Remote-Modus wird das Originalfoto direkt vom S25 zum Tablet übertragen und dort unter Pictures/Collectooow Photobox/Rohbilder gespeichert. Das S25 legt keine dauerhafte Fotodatei an. Einstellungen werden lokal dauerhaft gespeichert."
+            android:textSize="12sp" />
 
     </LinearLayout>
 </ScrollView>
