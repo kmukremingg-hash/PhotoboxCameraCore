@@ -1,0 +1,61 @@
+name: Publish Fotobox Tablet 1.2
+
+on:
+  push:
+    branches:
+      - fotobox-tablet-1.2-release
+    paths:
+      - '.github/workflows/publish-fotobox-tablet-12.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository laden
+        uses: actions/checkout@v4
+        with:
+          ref: fotobox-tablet-1.2-release
+          fetch-depth: 0
+
+      - name: Signierte APK uebertragen und pruefen
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p releases
+          URL='https://release-assets.githubusercontent.com/github-production-release-asset/1319867648/ff4623aa-93cc-4772-a0fb-c27f8393d0fc?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-08-30T00%3A33%3A25Z&rscd=attachment%3B+filename%3DCollectooow-Fotobox-1.2-Tablet-SIGNED.apk&rsct=application%2Fvnd.android.package-archive&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-08-29T23%3A33%3A05Z&ske=2026-08-30T00%3A33%3A25Z&sks=b&skv=2018-11-09&sig=5cB8qrSLjiTwByLag71%2BqzslIbSuqL6x43YU1vgmHbM%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc4ODA0NjkzNCwibmJmIjoxNzg4MDQ2NjM0LCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.1KfW0HAwcl03vUJiUoUCWcGr3QCEvMP-1MfJSxl7y5I&response-content-disposition=attachment%3B%20filename%3DCollectooow-Fotobox-1.2-Tablet-SIGNED.apk&response-content-type=application%2Fvnd.android.package-archive'
+          FILE='releases/Collectooow-Fotobox-1.2-Tablet-SIGNED.apk'
+          curl --fail --location --retry 3 --silent --show-error "$URL" -o "$FILE"
+          test -s "$FILE"
+          ACTUAL="$(sha256sum "$FILE" | awk '{print $1}')"
+          EXPECTED='4c94ea31edbdd64b6580e1ff8943b5464740d9a66262e7859debbab7dbe5a5e0'
+          test "$ACTUAL" = "$EXPECTED"
+          printf '%s  %s\n' "$ACTUAL" "$FILE" > releases/Collectooow-Fotobox-1.2-Tablet-SIGNED-SHA256.txt
+
+      - name: APK in Release-Branch ablegen
+        shell: bash
+        run: |
+          set -e
+          git config user.name 'Fotobox Build Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add releases/Collectooow-Fotobox-1.2-Tablet-SIGNED.apk releases/Collectooow-Fotobox-1.2-Tablet-SIGNED-SHA256.txt
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish Collectooow Fotobox Tablet 1.2 APK [skip ci]'
+            git push origin HEAD:fotobox-tablet-1.2-release
+          fi
+
+      - name: Oeffentliches GitHub Release anlegen
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG='fotobox-tablet-1.2-final'
+          FILE='releases/Collectooow-Fotobox-1.2-Tablet-SIGNED.apk'
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --target fotobox-tablet-1.2-release --title 'Collectooow Fotobox Tablet 1.2' --notes 'Signierte Tablet-Version 1.2.'
+          fi
+          gh release upload "$TAG" "$FILE" --clobber
