@@ -1,0 +1,61 @@
+name: Publish Fotobox 1.2.1 RegressionFix TEST
+
+on:
+  push:
+    branches:
+      - fotobox-1.2.1-regression-fix-test-release
+    paths:
+      - '.github/workflows/publish-fotobox-121-regression-test.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository laden
+        uses: actions/checkout@v4
+        with:
+          ref: fotobox-1.2.1-regression-fix-test-release
+          fetch-depth: 0
+
+      - name: Gepruefte TEST-APK uebertragen
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p releases
+          URL='https://raw.githubusercontent.com/kmukremingg-hash/KEYWOOW-Android/fotobox-1.2.1-regression-fix-test/fotobox-121-regression-fix-output/Collectooow-Fotobox-1.2.1-RegressionFix-TEST.apk?token=BVX34DIZ6O3UVFGFZMTHNETKSOFOJAA'
+          FILE='releases/Collectooow-Fotobox-1.2.1-RegressionFix-TEST.apk'
+          curl --fail --location --retry 3 --silent --show-error "$URL" -o "$FILE"
+          test -s "$FILE"
+          ACTUAL="$(sha256sum "$FILE" | awk '{print $1}')"
+          EXPECTED='b791342fb522fe95b72ee639d8d41374f655b341d1d787b920782b5fb560fafc'
+          test "$ACTUAL" = "$EXPECTED"
+          printf '%s  %s\n' "$ACTUAL" "$FILE" > releases/Collectooow-Fotobox-1.2.1-RegressionFix-TEST-SHA256.txt
+
+      - name: APK im Release-Branch sichern
+        shell: bash
+        run: |
+          set -e
+          git config user.name 'Fotobox Build Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add releases/Collectooow-Fotobox-1.2.1-RegressionFix-TEST.apk releases/Collectooow-Fotobox-1.2.1-RegressionFix-TEST-SHA256.txt
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish Fotobox 1.2.1 RegressionFix TEST [skip ci]'
+            git push origin HEAD:fotobox-1.2.1-regression-fix-test-release
+          fi
+
+      - name: Oeffentliches TEST-Release anlegen
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG='fotobox-1.2.1-regression-fix-test'
+          FILE='releases/Collectooow-Fotobox-1.2.1-RegressionFix-TEST.apk'
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --target fotobox-1.2.1-regression-fix-test-release --title 'Collectooow Fotobox 1.2.1 RegressionFix TEST' --notes 'Parallele TEST-Version. Stabile Fotobox bleibt installiert. Remote/Host, helles Design, Original-Icon und Kamera-Funktionen wiederhergestellt; AutoCrop V6 und Crop-Feinjustierung bleiben erhalten.' --prerelease
+          fi
+          gh release upload "$TAG" "$FILE" releases/Collectooow-Fotobox-1.2.1-RegressionFix-TEST-SHA256.txt --clobber
