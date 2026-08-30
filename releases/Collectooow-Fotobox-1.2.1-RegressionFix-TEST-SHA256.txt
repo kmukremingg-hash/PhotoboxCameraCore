@@ -1,0 +1,1 @@
+b791342fb522fe95b72ee639d8d41374f655b341d1d787b920782b5fb560fafc  releases/Collectooow-Fotobox-1.2.1-RegressionFix-TEST.apk
